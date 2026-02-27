@@ -45,6 +45,7 @@ export default function Home() {
       prompt,
       image: fileUrl,
       structure: "scribble",
+      replicate_api_token: localStorage.getItem("replicate_api_token"),
     };
 
     const response = await fetch("/api/predictions", {
@@ -71,7 +72,13 @@ export default function Home() {
       prediction.status !== "failed"
     ) {
       await sleep(500);
-      const response = await fetch("/api/predictions/" + prediction.id);
+      const response = await fetch("/api/predictions/" + prediction.id, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem(
+            "replicate_api_token"
+          )}`,
+        },
+      });
       prediction = await response.json();
       setPredictions((predictions) => ({
         ...predictions,

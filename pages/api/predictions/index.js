@@ -9,15 +9,13 @@ async function getObjectFromRequestBodyStream(body) {
   return JSON.parse(string);
 }
 
-const WEBHOOK_HOST = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : process.env.NGROK_HOST;
+const WEBHOOK_HOST = "https://scribble-tattzy.vercel.app";
 
 export default async function handler(req) {
   const input = await getObjectFromRequestBodyStream(req.body);
 
-  // Use environment variable for API token
-  const replicate_api_token = process.env.REPLICATE_API_TOKEN;
+  // Destructure to extract replicate_api_token and keep the rest of the properties in input
+  const { replicate_api_token, ...restInput } = input;
 
   const replicate = new Replicate({
     auth: replicate_api_token,

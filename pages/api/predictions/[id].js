@@ -3,8 +3,8 @@ import Replicate from "replicate";
 import packageData from "../../../package.json";
 
 export default async function handler(req) {
-  // Use environment variable for API token
-  const replicate_api_token = process.env.REPLICATE_API_TOKEN;
+  const authHeader = req.headers.get("authorization");
+  const replicate_api_token = authHeader.split(" ")[1]; // Assuming a "Bearer" token
 
   const replicate = new Replicate({
     auth: replicate_api_token,

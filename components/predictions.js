@@ -1,5 +1,5 @@
 import copy from "copy-to-clipboard";
-import { Copy as CopyIcon, PlusCircle as PlusCircleIcon } from "lucide-react";
+import { Copy as CopyIcon, PlusCircle as PlusCircleIcon, Download as DownloadIcon, Share2 as ShareIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Fragment, useEffect, useRef, useState } from "react";
@@ -55,6 +55,61 @@ export function Prediction({ prediction, showLinkToNewScribble = false }) {
     setLinkCopied(true);
   };
 
+  const downloadImage = async () => {
+    if (!prediction.output?.length) return;
+    
+    const imageUrl = prediction.output[prediction.output.length - 1];
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `scribble-${prediction.id}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      // Download failed
+    }
+  };
+
+  const shareImage = async () => {
+    if (!prediction.output?.length) return;
+    
+    const imageUrl = prediction.output[prediction.output.length - 1];
+    const shareUrl = window.location.origin + "/scribbles/" + (prediction.uuid || prediction.id);
+    
+    if (navigator.share) {
+      try {
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+        const file = new File([blob], "scribble.png", { type: "image/png" });
+        
+        await navigator.share({
+          title: "Scribble Diffusion",
+          text: `Check out my AI-generated image: "${prediction.input.prompt}"`,
+          url: shareUrl,
+          files: [file],
+        });
+      } catch (error) {
+        try {
+          await navigator.share({
+            title: "Scribble Diffusion",
+            text: `Check out my AI-generated image: "${prediction.input.prompt}"`,
+            url: shareUrl,
+          });
+        } catch (shareError) {
+          // Share failed
+        }
+      }
+    } else {
+      copy(shareUrl);
+      alert("Link copied to clipboard!");
+    }
+  };
+
   // Clear the "Copied!" message after 4 seconds
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -94,10 +149,18 @@ export function Prediction({ prediction, showLinkToNewScribble = false }) {
         &ldquo;{prediction.input.prompt}&rdquo;
       </div>
       <div className="text-center py-2">
-        <button className="lil-button" onClick={copyLink}>
-          <CopyIcon className="icon" />
-          {linkCopied ? "Copied!" : "Copy link"}
-        </button>
+        {prediction.output?.length && (
+          <>
+            <button className="lil-button" onClick={downloadImage}>
+              <DownloadIcon className="icon" />
+              Download
+            </button>
+            <button className="lil-button" onClick={shareImage}>
+              <ShareIcon className="icon" />
+              Share
+            </button>
+          </>
+        )}
 
         {showLinkToNewScribble && (
           <Link href="/">

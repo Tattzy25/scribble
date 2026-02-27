@@ -35,10 +35,12 @@ input {
 }
 
 .icon {
-  @apply inline relative mr-1;
+  @apply inline-block relative mr-1;
   top: -0.1em;
   width: 1.1em;
   height: 1.1em;
+  min-width: 1em;
+  min-height: 1em;
 }
 
 .prose {

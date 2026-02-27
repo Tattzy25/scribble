@@ -4,10 +4,12 @@ import packageData from "../../../package.json";
 
 export default async function handler(req) {
   const authHeader = req.headers.get("authorization");
-  const replicate_api_token = authHeader.split(" ")[1]; // Assuming a "Bearer" token
+  const replicate_api_token = authHeader ? authHeader.split(" ")[1] : null;
+
+  const token = replicate_api_token || process.env.REPLICATE_API_TOKEN;
 
   const replicate = new Replicate({
-    auth: replicate_api_token,
+    auth: token,
     userAgent: `${packageData.name}/${packageData.version}`,
   });
   const predictionId = req.nextUrl.searchParams.get("id");

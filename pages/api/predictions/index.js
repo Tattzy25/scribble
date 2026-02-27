@@ -14,20 +14,27 @@ const WEBHOOK_HOST = "https://scribble-tattzy.vercel.app";
 export default async function handler(req) {
   const input = await getObjectFromRequestBodyStream(req.body);
 
-  // Destructure to extract replicate_api_token and keep the rest of the properties in input
   const { replicate_api_token, ...restInput } = input;
 
+  const token = replicate_api_token || process.env.REPLICATE_API_TOKEN;
+
   const replicate = new Replicate({
-    auth: replicate_api_token,
+    auth: token,
     userAgent: `${packageData.name}/${packageData.version}`,
   });
 
-
-  // https://replicate.com/jagilley/controlnet-scribble/versions
+  // Your LoRA model with Flux - using lineart
   const prediction = await replicate.predictions.create({
-    version:
-      "435061a1b5a4c1e26740464bf786efdfa9cb3a3ac488595a2de23e143fdb0117",
-    input,
+    version: "4e8f6c1dc77db77dabaf98318cde3679375a399b434ae2db0e698804ac84919c",
+    input: {
+      prompt: `TA-TTT-OO-ME ${restInput.prompt}`,
+      lineart_image: restInput.image,
+      lineart_strength: 0.6,
+      lineart_detector_type: "lineart",
+      guidance_scale: 3.5,
+      steps: 8,
+      seed: Math.floor(Math.random() * 1000000),
+    },
     webhook: `${WEBHOOK_HOST}/api/replicate-webhook`,
     webhook_events_filter: ["start", "completed"],
   });
